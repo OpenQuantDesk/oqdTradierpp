@@ -1,0 +1,114 @@
+# Build directories
+build/
+*.a
+*.so
+*.dylib
+*.lib
+*.dll
+*.exe
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# IDE specific files
+.vscode/
+.idea/
+*.user
+*.suo
+*.ncb
+*.sdf
+*.opensdf
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.gcno
+*.gcda
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Temporary files
+*.swp
+*.swo
+*~
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Doxygen output
+doc/
+docs/
+html/
+latex/
+
+# Test artifacts
+*.out
+*.test
+*.profraw
+*.profdata
+
+# Coverage reports
+*.gcov
+coverage/
+*.lcov
+
+# Package managers
+conan.lock
+conanbuildinfo.cmake
+conaninfo.txt
+
+# Dependency directories
+deps/
+third_party/
+
+# macOS specific
+.DS_Store
+._*
+
+# Windows specific
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Linux specific
+*.deb
+*.rpm
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Docker ignore (though Dockerfile should be tracked)
+!docker/Dockerfile
+
+# Exceptions (preserve these patterns)
+!examples/**/*.cpp
+!examples/**/*.md
+!tests/**/*.cpp
+!tests/**/*.md
+!src/**/*.cpp
+!include/**/*.hpp
+!*.md
+!*.txt
+!*.sh
+!*.cmake
+!CMakeLists.txt
+!Doxyfile

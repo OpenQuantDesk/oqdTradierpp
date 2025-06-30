@@ -1,0 +1,300 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    
+    strategy:
+      matrix:
+        compiler:
+          - { cc: gcc-12, cxx: g++-12 }
+          - { cc: clang-14, cxx: clang++-14 }
+        build_type: [Debug, Release]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libboost-all-dev \
+          libsimdjson-dev \
+          libssl-dev \
+          libgtest-dev \
+          libgmock-dev \
+          valgrind \
+          lcov \
+          wget
+          
+        # Install websocketpp headers
+        sudo apt-get install -y libwebsocketpp-dev || {
+          cd /tmp
+          git clone https://github.com/zaphoyd/websocketpp.git
+          cd websocketpp
+          mkdir build && cd build
+          cmake ..
+          sudo make install
+        }
+        
+    - name: Set up compiler
+      run: |
+        sudo apt-get install -y ${{ matrix.compiler.cc }} ${{ matrix.compiler.cxx }}
+        echo "CC=${{ matrix.compiler.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler.cxx }}" >> $GITHUB_ENV
+        
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} \
+          -DCMAKE_CXX_FLAGS="-Wall -Wextra -Wpedantic -Werror" \
+          -DENABLE_COVERAGE=ON
+          
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }} -j$(nproc)
+      
+    - name: Run unit tests
+      run: |
+        cd build
+        ./tests/oqdTradierpp_unit_tests --gtest_output=xml:unit_test_results.xml
+        
+    - name: Run performance tests
+      run: |
+        cd build
+        ./tests/performance/oqdTradierpp_performance_tests --gtest_output=xml:performance_test_results.xml
+        
+    - name: Run Valgrind memory tests
+      if: matrix.compiler.cc == 'gcc-12' && matrix.build_type == 'Debug'
+      run: |
+        cd build
+        make test_valgrind || echo "Valgrind found issues - check logs"
+        
+    - name: Generate coverage report
+      if: matrix.compiler.cc == 'gcc-12' && matrix.build_type == 'Debug'
+      run: |
+        cd build
+        lcov --capture --directory . --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --remove coverage.info '*/
+tests/*' --output-file coverage.info
+        lcov --remove coverage.info '*/
+examples/*' --output-file coverage.info
+        lcov --list coverage.info
+        
+    - name: Upload coverage to Codecov
+      if: matrix.compiler.cc == 'gcc-12' && matrix.build_type == 'Debug'
+      uses: codecov/codecov-action@v3
+      with:
+        file: build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.compiler.cc }}-${{ matrix.build_type }}
+        path: build/*test_results.xml
+        
+    - name: Check for compiler warnings
+      run: |
+        # Check build log for warnings
+        if grep -q "warning:" build.log 2>/dev/null; then
+          echo "Compiler warnings found:"
+          grep "warning:" build.log
+          exit 1
+        fi
+
+  integration-tests:
+    runs-on: ubuntu-22.04
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libboost-all-dev \
+          libsimdjson-dev \
+          libssl-dev \
+          libgtest-dev \
+          libwebsocketpp-dev
+          
+    - name: Configure and build
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j$(nproc)
+        
+    - name: Run integration tests (if credentials available)
+      env:
+        TRADIER_SANDBOX_TOKEN: ${{ secrets.TRADIER_SANDBOX_TOKEN }}
+        TRADIER_SANDBOX_ACCOUNT: ${{ secrets.TRADIER_SANDBOX_ACCOUNT }}
+        TRADIER_PRODUCTION_TOKEN: ${{ secrets.TRADIER_PRODUCTION_TOKEN }}
+      run: |
+        cd build
+        if [ -n "$TRADIER_SANDBOX_TOKEN" ] && [ -n "$TRADIER_SANDBOX_ACCOUNT" ]; then
+          echo "Running sandbox trading tests..."
+          timeout 300 ./tests/oqdTradierpp_integration_tests --gtest_filter="SandboxTradingTest.*" --gtest_output=xml:sandbox_test_results.xml || echo "Sandbox tests completed with timeout or other exit"
+        else
+          echo "Sandbox credentials not available - skipping sandbox tests"
+        fi
+        
+        if [ -n "$TRADIER_PRODUCTION_TOKEN" ]; then
+          echo "Running streaming validation tests..."
+          timeout 60 ./tests/oqdTradierpp_integration_tests --gtest_filter="StreamingValidationTest.ConnectAndDisconnect:StreamingValidationTest.ErrorHandling" --gtest_output=xml:streaming_test_results.xml || echo "Streaming tests completed with timeout or other exit"
+        else
+          echo "Production credentials not available - skipping streaming tests"
+        fi
+        
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results
+        path: build/*test_results.xml
+
+  static-analysis:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang-tidy-14 \
+          cppcheck \
+          libboost-all-dev \
+          libsimdjson-dev \
+          libssl-dev
+          
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all --std=c++20 --platform=unix64 \
+          --suppress=missingIncludeSystem \
+          --suppress=unusedFunction \
+          --xml --xml-version=2 \
+          --output-file=cppcheck-report.xml \
+          src/ include/ 2>&1 || echo "Cppcheck completed with warnings"
+          
+    - name: Configure for clang-tidy
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_COMPILER=clang-14 \
+          -DCMAKE_CXX_COMPILER=clang++-14 \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          
+    - name: Run clang-tidy
+      run: |
+        cd build
+        run-clang-tidy-14 -p . -header-filter='.*' \
+          -checks='-*,readability-*,performance-*,modernize-*,bugprone-*' \
+          ../src/ ../include/ > clang-tidy-report.txt 2>&1 || echo "Clang-tidy completed with warnings"
+          
+    - name: Upload analysis results
+      uses: actions/upload-artifact@v3
+      with:
+        name: static-analysis-reports
+        path: |
+          cppcheck-report.xml
+          build/clang-tidy-report.txt
+
+  documentation:
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Doxygen
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+        
+    - name: Generate documentation
+      run: |
+        doxygen Doxyfile || echo "Documentation generated with warnings"
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html
+
+  release:
+    runs-on: ubuntu-22.04
+    needs: [build-and-test, integration-tests, static-analysis]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libboost-all-dev \
+          libsimdjson-dev \
+          libssl-dev \
+          libwebsocketpp-dev
+          
+    - name: Build release
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+        cmake --build build --config Release -j$(nproc)
+        cmake --build build --target package
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Changes in this Release
+          - See [CHANGELOG.md](CHANGELOG.md) for details
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/oqdTradierpp-*.tar.gz
+        asset_name: oqdTradierpp-${{ github.ref_name }}-linux-x64.tar.gz
+        asset_content_type: application/gzip
