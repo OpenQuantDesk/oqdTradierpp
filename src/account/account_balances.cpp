@@ -70,4 +70,218 @@ std::string AccountBalances::to_json() const {
         .str();
 }
 
+// ==========================================
+// AccountBalances Validation Methods
+// ==========================================
+
+ValidationResult AccountBalances::validate(ValidationLevel level) const {
+    auto result = ValidationResult(ResponseType::AccountBalances);
+    
+    if (level == ValidationLevel::None) {
+        return result;
+    }
+    
+    // Convert balances to JSON for framework validation
+    std::string json_str = to_json();
+    simdjson::dom::parser parser;
+    auto parse_result = parser.parse(json_str);
+    if (parse_result.error()) {
+        result.add_issue(ValidationIssue{"", ValidationSeverity::Critical, "Failed to serialize balances for validation"});
+        return result;
+    }
+    
+    // Use framework validation
+    auto framework_result = ResponseValidator::validate_account_balances(parse_result.value(), level);
+    
+    // Merge framework results
+    for (const auto& issue : framework_result.issues) {
+        result.add_issue(issue);
+    }
+    for (const auto& field : framework_result.missing_required_fields) {
+        result.add_missing_field(field);
+    }
+    
+    // Add our custom validations
+    if (level >= ValidationLevel::Basic) {
+        auto balance_issues = validate_balance_constraints();
+        for (const auto& issue : balance_issues) {
+            result.add_issue(issue);
+        }
+    }
+    
+    if (level >= ValidationLevel::Strict) {
+        auto consistency_issues = validate_consistency_rules();
+        auto account_type_issues = validate_account_type_rules();
+        
+        for (const auto& issue : consistency_issues) result.add_issue(issue);
+        for (const auto& issue : account_type_issues) result.add_issue(issue);
+    }
+    
+    return result;
+}
+
+bool AccountBalances::is_valid() const {
+    return validate().is_valid;
+}
+
+std::vector<ValidationIssue> AccountBalances::get_validation_issues() const {
+    return validate().issues;
+}
+
+std::vector<ValidationIssue> AccountBalances::validate_balance_constraints() const {
+    std::vector<ValidationIssue> issues;
+    
+    // Basic balance validations
+    if (total_equity < 0) {
+        issues.emplace_back("total_equity", ValidationSeverity::Warning, 
+                           "Total equity is negative", "≥ 0", std::to_string(total_equity),
+                           "Account may be in deficit");
+    }
+    
+    if (current_requirement < 0) {
+        issues.emplace_back("current_requirement", ValidationSeverity::Error, 
+                           "Current requirement cannot be negative", "≥ 0", std::to_string(current_requirement));
+    }
+    
+    if (uncleared_funds < 0) {
+        issues.emplace_back("uncleared_funds", ValidationSeverity::Error, 
+                           "Uncleared funds cannot be negative", "≥ 0", std::to_string(uncleared_funds));
+    }
+    
+    if (pending_orders_count < 0) {
+        issues.emplace_back("pending_orders_count", ValidationSeverity::Error, 
+                           "Pending orders count cannot be negative", "≥ 0", std::to_string(pending_orders_count));
+    }
+    
+    // Pattern Day Trader rule
+    if (total_equity > 0 && total_equity < 25000 && has_day_trading_buying_power()) {
+        issues.emplace_back("total_equity", ValidationSeverity::Warning, 
+                           "Account below PDT minimum equity requirement", "≥ $25,000", std::to_string(total_equity),
+                           "Day trading may be restricted");
+    }
+    
+    return issues;
+}
+
+std::vector<ValidationIssue> AccountBalances::validate_consistency_rules() const {
+    std::vector<ValidationIssue> issues;
+    
+    // Basic consistency checks
+    double calculated_equity = long_market_value + short_market_value + total_cash;
+    double equity_diff = std::abs(calculated_equity - total_equity);
+    
+    if (equity_diff > 0.01) { // Allow small rounding differences
+        issues.emplace_back("total_equity", ValidationSeverity::Warning, 
+                           "Equity calculation inconsistency detected",
+                           std::to_string(calculated_equity), std::to_string(total_equity),
+                           "Verify equity calculations");
+    }
+    
+    // Market value consistency
+    if (market_value != long_market_value + short_market_value) {
+        issues.emplace_back("market_value", ValidationSeverity::Warning, 
+                           "Market value inconsistency detected",
+                           std::to_string(long_market_value + short_market_value), 
+                           std::to_string(market_value),
+                           "Verify market value calculations");
+    }
+    
+    // Cash availability
+    double available_cash = total_cash - uncleared_funds;
+    if (available_cash < 0) {
+        issues.emplace_back("total_cash", ValidationSeverity::Warning, 
+                           "Available cash is negative after uncleared funds",
+                           "≥ uncleared funds", std::to_string(total_cash),
+                           "May indicate settlement issues");
+    }
+    
+    return issues;
+}
+
+std::vector<ValidationIssue> AccountBalances::validate_account_type_rules() const {
+    std::vector<ValidationIssue> issues;
+    
+    // Margin requirements
+    if (is_margin_account()) {
+        if (current_requirement > 0 && total_equity < current_requirement) {
+            issues.emplace_back("total_equity", ValidationSeverity::Critical, 
+                               "Account below maintenance margin requirement",
+                               "≥ " + std::to_string(current_requirement), 
+                               std::to_string(total_equity),
+                               "Margin call may be issued");
+        }
+        
+        if (short_market_value < 0) {
+            double short_requirement = std::abs(short_market_value) * 0.3; // 30% requirement
+            if (total_cash < short_requirement) {
+                issues.emplace_back("total_cash", ValidationSeverity::Warning, 
+                                   "Insufficient cash for short position maintenance",
+                                   "≥ " + std::to_string(short_requirement), 
+                                   std::to_string(total_cash),
+                                   "Monitor short position requirements");
+            }
+        }
+    }
+    
+    // Account risk assessment
+    if (is_at_risk()) {
+        issues.emplace_back("", ValidationSeverity::Critical, 
+                           "Account appears to be at risk",
+                           "positive equity", "negative or low equity",
+                           "Contact support immediately");
+    }
+    
+    return issues;
+}
+
+// Helper methods
+bool AccountBalances::has_sufficient_buying_power(double required_amount) const {
+    return get_available_buying_power() >= required_amount;
+}
+
+bool AccountBalances::is_margin_account() const {
+    // Simplified check - in real implementation, this would check account type
+    return short_market_value != 0 || current_requirement > 0;
+}
+
+bool AccountBalances::has_day_trading_buying_power() const {
+    // Simplified check for day trading buying power
+    return total_equity >= 25000 && is_margin_account();
+}
+
+bool AccountBalances::is_at_risk() const {
+    return total_equity <= 0 || 
+           (current_requirement > 0 && total_equity < current_requirement * 1.1);
+}
+
+double AccountBalances::get_available_buying_power() const {
+    double available_cash = total_cash - uncleared_funds;
+    if (is_margin_account()) {
+        // Simplified buying power calculation
+        return available_cash + (long_market_value * 0.5); // 50% margin
+    }
+    return available_cash;
+}
+
+double AccountBalances::get_maintenance_excess() const {
+    if (current_requirement <= 0) {
+        return total_equity;
+    }
+    return total_equity - current_requirement;
+}
+
+// Validation summary and reporting
+std::string AccountBalances::get_validation_summary() const {
+    return validate().get_summary();
+}
+
+std::string AccountBalances::get_validation_report() const {
+    return validate().get_detailed_report();
+}
+
+void AccountBalances::print_validation_issues() const {
+    auto result = validate();
+    ValidationUtils::print_validation_report(result);
+}
+
 }

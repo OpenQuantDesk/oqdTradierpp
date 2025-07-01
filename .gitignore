@@ -87,6 +87,7 @@ third_party/
 *.msix
 *.msm
 *.msp
+*.txt
 
 # Linux specific
 *.deb

@@ -44,8 +44,38 @@ if(INTEGRATION_TEST_SOURCES)
     gtest_discover_tests(oqdTradierpp_integration_tests)
 endif()
 
+# Create test executable for error codes and validation tests
+add_executable(oqdTradierpp_error_tests test_error_codes.cpp)
+target_link_libraries(oqdTradierpp_error_tests
+    oqdTradierpp
+    GTest::gtest
+    GTest::gtest_main
+    ${Boost_LIBRARIES}
+    ${SIMDJSON_LIBRARIES}
+    pthread
+    ssl
+    crypto
+)
+set_property(TARGET oqdTradierpp_error_tests PROPERTY CXX_STANDARD 20)
+
+# Create test executable for integrated validation tests
+add_executable(oqdTradierpp_validation_tests test_integrated_validation.cpp)
+target_link_libraries(oqdTradierpp_validation_tests
+    oqdTradierpp
+    GTest::gtest
+    GTest::gtest_main
+    ${Boost_LIBRARIES}
+    ${SIMDJSON_LIBRARIES}
+    pthread
+    ssl
+    crypto
+)
+set_property(TARGET oqdTradierpp_validation_tests PROPERTY CXX_STANDARD 20)
+
 # Add tests to CTest
 gtest_discover_tests(oqdTradierpp_unit_tests)
+gtest_discover_tests(oqdTradierpp_error_tests)
+gtest_discover_tests(oqdTradierpp_validation_tests)
 
 # Add valgrind target
 find_program(VALGRIND_PROGRAM valgrind)

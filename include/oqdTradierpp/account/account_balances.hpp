@@ -15,6 +15,7 @@
 
 #include <simdjson.h>
 #include <string>
+#include "oqdTradierpp/response_validator.hpp"
 
 namespace oqd {
 
@@ -42,6 +43,29 @@ struct AccountBalances {
     
     static AccountBalances from_json(const simdjson::dom::element& elem);
     std::string to_json() const;
+    
+    // Validation methods
+    ValidationResult validate(ValidationLevel level = ValidationLevel::Basic) const;
+    bool is_valid() const;
+    std::vector<ValidationIssue> get_validation_issues() const;
+    
+    // Specific validation methods
+    std::vector<ValidationIssue> validate_balance_constraints() const;
+    std::vector<ValidationIssue> validate_consistency_rules() const;
+    std::vector<ValidationIssue> validate_account_type_rules() const;
+    
+    // Helper methods
+    bool has_sufficient_buying_power(double required_amount) const;
+    bool is_margin_account() const;
+    bool has_day_trading_buying_power() const;
+    bool is_at_risk() const;
+    double get_available_buying_power() const;
+    double get_maintenance_excess() const;
+    
+    // Validation summary and reporting
+    std::string get_validation_summary() const;
+    std::string get_validation_report() const;
+    void print_validation_issues() const;
 };
 
 }
