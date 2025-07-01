@@ -1,0 +1,186 @@
+1.1 Error Code Infrastructure
+
+- Create include/libtradier2/error_codes.hpp
+- Define TradierErrorCode enum with all 72+ error codes
+- Add ErrorCodeInfo struct with description, category, retry behavior
+- Implement error code to string mapping functions
+- Enhance Exception Hierarchy in include/libtradier2/exceptions.hpp
+- Extend TradierApiException with error code support
+- Add structured error information (code, message, suggestions)
+- Create category-specific exception types (AccountError, OrderError, etc.)
+- Update Response Parsing in src/response_parser.cpp
+- Parse error codes from API response "errors" property
+- Map string error codes to enum values
+- Extract additional error context from responses
+
+1.2 Error Code Mapping Table
+
+- Create src/error_code_mappings.cpp
+- Static map of error codes to ErrorCodeInfo structs
+- Include recovery suggestions and retry policies for each code
+- Categorize errors by type (account, trading, validation, system)
+
+Phase 2: Response Validation Framework (Week 2-3)
+
+2.1 Field Reference System
+
+- Create include/libtradier2/field_reference.hpp
+- Define FieldInfo struct with validation metadata
+- Create static maps for all API response types (Orders, Balances, etc.)
+- Include data types, constraints, and descriptions from reference
+- Implement Validation Engine in src/response_validator.cpp
+- Template-based validator for different response types
+- Check required fields, data types, and value constraints
+- Generate detailed validation reports with field-level errors
+
+2.2 Response Structure Validation
+
+- Enhance existing response classes
+- Add validation methods to Order, Balance, Position classes
+- Implement self-validation during deserialization
+- Create validation result objects with warnings/errors
+
+Phase 3: Enhanced Order Validation (Week 3-4)
+
+3.1 Pre-submission Validation
+
+- Extend src/order_validator.cpp
+- Add Tradier-specific validation rules from error code mappings
+- Implement market hours validation using Clock API
+- Add account permission checking against balance types
+- Create Account-Aware Validation
+- Validate orders against account type restrictions
+- Check buying power and margin requirements
+- Implement position-aware validation (long/short conflicts)
+
+3.2 Order Type Specific Rules
+
+- Market Order Validation
+- Enforce day-only restriction for market orders
+- Validate pre/post market restrictions
+- Stop Order Validation
+- Check stop price vs current bid/ask requirements
+- Validate stop price positioning rules
+
+Phase 4: Intelligent Error Recovery (Week 4-5)
+
+4.1 Retry Policy Framework
+
+- Create include/libtradier2/retry_policy.hpp
+- Define retry configuration with backoff strategies
+- Implement error-specific retry logic
+- Add circuit breaker pattern for failing endpoints
+- Enhance TradierClient with Retry Logic
+- Automatic retry for retryable errors
+- Rate limit aware retry delays
+- Configurable retry policies per endpoint
+
+4.2 Resilience Patterns
+
+- Circuit Breaker Implementation
+- Track failure rates per endpoint
+- Implement half-open/open/closed states
+- Add health check mechanisms
+
+Phase 5: Reference Data Integration (Week 5-6)
+
+5.1 Market Reference Data
+
+- Create src/market_reference.cpp
+- Embed exchange codes and descriptions
+- Add market hours and trading session information
+- Implement symbol format validation
+
+5.2 Helper Utilities
+
+- Symbol Validation and Formatting
+- OCC option symbol parsing and validation
+- Exchange code lookup and validation
+- Symbol type detection (stock, option, ETF, etc.)
+
+Phase 6: Developer Experience & Documentation (Week 6-7)
+
+6.1 Error Debugging Tools
+
+- Create diagnostic utilities
+- Error code lookup tools
+- Validation report formatters
+- Recovery suggestion generators
+
+6.2 Examples and Documentation
+
+- Update examples with error handling patterns
+- Create error handling best practices guide
+- Add API reference documentation for new features
+
+Phase 7: Testing & Integration (Week 7-8)
+
+7.1 Comprehensive Test Suite
+
+- Error code mapping tests
+- Response validation tests
+- Retry policy tests
+- Integration tests with mock error responses
+
+7.2 Performance Testing
+
+- Validation overhead measurement
+- Error handling performance impact
+- Memory usage analysis
+
+Implementation Details
+
+File Structure Plan
+
+include/libtradier2/
+├── error_codes.hpp          # Error code enums and info
+├── field_reference.hpp      # API field metadata
+├── retry_policy.hpp         # Retry and recovery logic
+├── response_validator.hpp   # Validation framework
+└── market_reference.hpp     # Exchange/symbol reference
+
+src/
+├── error_code_mappings.cpp  # Error code to info mapping
+├── response_validator.cpp   # Validation implementation
+├── retry_policy.cpp         # Retry logic implementation
+├── market_reference.cpp     # Reference data implementation
+└── enhanced_exceptions.cpp  # Extended exception handling
+
+Integration Strategy
+
+Backward Compatibility
+
+- All new features are additive
+- Existing API remains unchanged
+- Optional validation can be enabled/disabled
+- Gradual migration path for users
+
+Configuration Options
+
+- Enable/disable response validation
+- Configure retry policies per application
+- Customize error handling behavior
+- Debug mode with detailed error information
+
+Performance Considerations
+
+- Lazy loading of reference data
+- Efficient error code lookups
+- Minimal overhead for validation
+- Optional compile-time optimizations
+
+Risk Mitigation
+
+Testing Strategy
+
+- Unit tests for each component
+- Integration tests with Tradier sandbox
+- Mock error scenario testing
+- Performance regression testing
+
+Rollback Plan
+
+- Feature flags for new functionality
+- Comprehensive logging for debugging
+- Gradual rollout with monitoring
+- Quick disable mechanisms

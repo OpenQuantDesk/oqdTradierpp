@@ -1,0 +1,354 @@
+Order Related Errors
+
+Presently, the API sends back a 200 response for any error that is thrown by downstream systems (risk management systems, market centers, etc). This 200 response body will include an errors property with details about the error. This is most likely to occur on complex order placement, order modification, and order cancellation.
+
+In the event you receive this errors payload, it will typically include a description of the problem. In the event you receive an error code, here is a mapping table for errors you can expect:
+Code 	Description
+AccountDisabled 	Account is disabled for trading. Please contact 980-272-3880 for questions or concerns.
+AccountIsNotApproved 	Account is not approved for trading. Please contact 980-272-3880 for questions or concerns
+AccountMarginRuleViolation 	Margin rules prohibit this transaction. Please contact 980-272-3880 for questions or concerns
+AssetTradingNotConfiguredForAccount 	The order requsted is not availible for your account. Please contact 980-272-3880 for questions or concerns
+BuyStopOrderStopPriceLessAsk 	Buy Stop order must have a Stop price greater than the current Ask price
+ContingentOrderExecution 	Placement Condition: when {0} {1} is {2} than {3
+DayTraderPatternRestriction 	Your day trade limit exceeded. Please contact 980-272-3880 for questions or concerns
+DayTradingBuyingPowerExceeded 	There is not enough day trading buying power for the requested order
+ExpirationDateUndefined 	Expiration date for option is not defined
+IncorrectOrderQuantity 	Quantity should be between 1 and 10,000,000
+IncorrectTimeInForce 	Time In Force (Day or GTC) is not defined
+IndexOptionsOneExparyDate 	Multi Leg Orders with Index options must have all legs within 1 expiration date. Time spreads are not allowed on Index Options
+InitialMargin 	You do not have enough buying power for this trade
+InvalidOrderExpiration 	Expiration date must be greater than the current date
+LimitPriceUndefined 	Limit price is not valid. Please check the price entered
+LongOptionTradingDeniedForAccount 	Account is restricted for option trading. Please contact 980-272-3880 for questions or concerns
+LongPositionCrossZero 	Sell order is for more shares than your current long position, please review current position quantity along with open orders for security.
+MaintenanceMargin 	You do not have enough buying power for this trade
+MarketOrderIsGtc 	You cannot place market orders with GTC, only day orders are allowed
+OcoExpirationTypeNotTheSame 	Expiration type of OCO orders must be the same
+OcoOrderWithOppositeLegs 	You cannot place OCO order with orders for the same security and with opposite trade direction
+OcoPriceDifferenceIsLessThanDelta 	OCO price difference should be at least {0}$
+OmsInternalError 	Your order could not be processed. Please contact 980-272-3880 for questions or concerns
+OmsUnavailable 	Trading services are not available online currently, please contact 980-272-3880 for order requests
+OptionLevelRestriction 	Your account does not have the option level permission for this trade. Please contact 980-272-3880 for questions or concerns
+OptionTypeUndefined 	Type of option (call or put) is not defined
+OrderContingentChangeNotAllowed 	Change of order's contingent is not allowed
+OrderIsNotAllowedForAccount 	Order is not allowed. Account trading restriction: closing orders onl
+OrderPriceIsInvalid 	Price of {0} {1} order is {2} than market price
+OrderQuantity 	You cannot place orders with quantity less than 1
+OrderWithDifferentSide 	You cannot have pending orders with different sides for selected symbol where one is a MARKET order. You must close another pending order in order to place a SHORT order, or try a limit order instead
+OtoFirstLesIsMarketNotAllowed 	First market order in OTO is not allowed
+OtoOcoMarketNotAllowed 	OCO market orders are not allowed
+OtoOcoTrailingNotAllowed 	OTO/OCO trailing orders are not allowed
+QuotePriceIsInvalid 	There is no quote for the symbol requested, please contact 980-272-3880 to place the order.
+SecurityUndefined 	Symbol does not exist. Please contact 980-272-3880 for questions or concerns
+SellShortOrderLastPriceBelow5 	Sell Short order cannot be placed for stock priced below $5
+SellStopOrderStopPriceGreaterBid 	Sell Stop order must have a Stop price less than the Bid price
+ShortOptionTradingDeniedForAccount 	Account is restricted for option trading. Please contact 980-272-3880 for questions or concerns
+ShortOrderIsGtc 	You cannot place short stock orders with GTC, only day orders are allowed
+ShortPositionCrossZero 	Buy order is for more shares than your current short position, please review current position quantity along with open orders for security.
+ShortStockTradingDeniedForAccount 	Account is restricted from short sales. Please contact 980-272-3880 for questions or concerns
+ShortTradingDeniedForSecurity 	This symbol is not available for short sales. Please contact 980-272-3880 for questions or concerns
+SpreadTradingDeniedForAccount 	Account is restricted for spread trading. Please contact 980-272-3880 for questions or concerns
+StopPriceUndefined 	Stop price is not defined
+StrikePriceUndefined 	Strike price for option leg is not defined
+TooSmallEquityForDayTrading 	Pattern Day Trader Rule violation: Equity balance fell below $25,000
+TotalInitialMargin 	You do not have enough buying power for this trade
+TradeNonStandartOptions 	You cannot place an order with non standard options
+TradingDeniedForAccount 	Account is restricted for trading. Please contact 980-272-3880 for questions or concerns
+TradingDeniedForSecurity 	This asset class is restricted for trading
+UnexpectedBuyOrder 	Buy order cannot be placed to cover short position, order must be placed as a Buy to Cover
+UnexpectedBuyOrderOption 	Buy To Open order cannot be placed to close a short option position, order must be placed as a Buy to Close
+UnexpectedBuyToCoverOrder 	Buy To Cover order cannot be placed unless closing a short position, please check open orders.
+UnexpectedBuyToCoverOrderOption 	Buy To Close order cannot be placed unless closing a short option position, please check open orders.
+UnexpectedSellOrder 	Sell order cannot be placed unless you are closing a long position, please check open orders.
+UnexpectedSellOrderOption 	Sell to Close order cannot be placed unless you are closing a long option position, please check open orders.
+UnexpectedSellShortOrder 	Sell short order cannot be placed while you have a current long position, please check open orders.
+UnexpectedSellShortOrderOption 	Sell to Open order cannot be placed while you have a current long option position, please check open orders.
+UserDisabled 	Account is disabled for trading. Please contact 980-272-3880 for questions or concerns
+WashTradeAttempt 	You are unable to place orders on the same security and same price in different direction
+	Pre-market trading is currently unavailable.
+	Tradier Brokerage does not accept opening orders for OTC-BB and Pink Sheet securities, please contact us at (980)-272-3880 if you have any questions.
+	Due to price volatility a limit order must be placed.
+	Outside of market hours this order is required to be placed at a limit price.
+	Order failed PriceRange - AGGRESSIVE: OrderPrice {1} RefPrice {2} Limit {3} aggressive
+
+
+
+A	NYSE MKT
+B	NASDAQ OMX BX
+C	National Stock Exchange
+D	FINRA ADF
+E	Market Independent (Generated by Nasdaq SIP)
+F	Mutual Funds/Money Markets (NASDAQ)
+I	International Securities Exchange
+J	Direct Edge A
+K	Direct Edge X
+L	Long Term Stock Exchange
+M	Chicago Stock Exchange
+N	NYSE
+P	NYSE Arca
+Q	NASDAQ OMX
+S	NASDAQ Small Cap
+T	NASDAQ Int
+U	OTCBB
+V	OTC other
+W	CBOE
+X	NASDAQ OMX PSX
+G	GLOBEX
+Y	BATS Y-Exchange
+Z	BATS
+OPRA Feeds (Options)
+A	NYSE Amex Options
+B	BOX Options Exchange
+C	Chicago Board Options Exchange (CBOE)
+H	ISE Gemini
+I	International Securities Exchange (ISE)
+M	MIAX Options Exchange
+N	NYSE Arca Options
+O	Options Price Reporting Authority (OPRA)
+P	MIAX PEARL
+Q	NASDAQ Options Market
+T	NASDAQ OMX BX
+W	C2 Options Exchange
+X	NASDAQ OMX PHLX
+Z	BATS Options Market
+
+
+Orders
+Field 	Description
+id 	Unique identifier for the order
+type 	Single-leg, One of: market, limit, stop, stop_limit
+Multi-leg, One of: market, debit, credit, even
+symbol 	Security symbol or underlying security symbol
+side 	Equity, One of: buy, buy_to_cover, sell, sell_short
+Option, One of: buy_to_open, buy_to_close, sell_to_open, sell_to_close
+quantity 	Number of shares or contracts
+status 	One of: open, partially_filled, filled, expired, canceled, pending, rejected, error
+duration 	One of: day, pre, post, gtc
+price 	Limit price
+avg_fill_price 	Average fill price
+exec_quantity 	Total number of shares/contracts filled
+last_fill_price 	Last fill price
+last_fill_quantity 	Last fill quantity
+remaining_quantity 	Number of shares/contracts remaining
+create_date 	Date the order was created
+transaction_date 	Date the order was last updated
+class 	One of: equity, option, combo, multileg
+strategy 	One of: freeform, covered_call, protective_put, strangle, straddle, spread, collar, butterfly, condor, unknown
+option_symbol 	OCC option symbol
+stop_price 	Stop price
+reason_description 	Rejection details
+tag 	Order tag if available
+
+
+Balances
+Field 	Description
+option_short_value 	Value of short option positions
+total_equity 	Total account value
+account_number 	Account number
+account_type 	Type of the account
+close_pl 	Gain/Loss of current session's closed positions
+current_requirement 	Account's maintenance margin
+equity 	Equity value
+long_market_value 	Long market value
+market_value 	Market value
+open_pl 	Total gain/loss of current account's positions
+option_long_value 	Value of long option positions
+option_requirement 	Account's total option requirement
+pending_orders_count 	Count of all pending/open orders
+short_market_value 	Short market value
+stock_long_value 	Value of long equity positions
+total_cash 	Total cash in the account
+uncleared_funds 	Cash unavailable for trading in the account
+pending_cash 	Amount of cash being held for open orders
+If type is "margin"
+margin.fed_call 	Amount that the account is in deficit for trades that have occurred but not been paid for
+margin.maintenance_call 	Amount that the account is under the minimum equity required to support the current positions
+margin.option_buying_power 	Amount of funds available to purchase non-marginable securities
+margin.stock_buying_power 	amount of funds available to purchase fully marginable securities
+margin.stock_short_value 	Value of short stocks
+margin.sweep 	
+If type is "cash"
+cash.cash_available 	
+cash.sweep 	Sweep
+cash.unsettled_funds 	Cash that is in the account from recent stock or option sales, but has not yet settled; cash from stock sales occurring during the last 2 trading days or from option sales occurring during the previous trading day
+If type is "pdt"
+pdt.fed_call 	Amount that the account is in deficit for trades that have occurred but not been paid for
+pdt.maintenance_call 	Amount that the account is under the minimum equity required in the account to support the current positions
+pdt.option_buying_power 	Amount of funds available to purchase non-marginable securities
+pdt.stock_buying_power 	Amount of funds available to purchase fully marginable securities
+pdt.stock_short_value 	Value of short stocks
+
+Access Token
+Field 	Description
+access_token 	Your access token
+expires_in 	Time in seconds before token expires
+scope 	Authorized scope of the token
+issued_at 	Date timestamp when the token was issued
+status 	Current status of the token -- this is for future use only
+refresh_token 	Your refresh token (if enabled)
+
+Clock
+Field 	Description
+date 	Current date
+description 	Displayable description of the status
+state 	Market state, one of: premarket, open, postmarket, closed
+timestamp 	UNIX timestamp of the present time
+next_change 	Next state change in hours/minutes
+next_state 	Next state change
+
+Calendar
+Field 	Description
+date 	Date
+status 	Status of the market, one of: open, closed
+description 	Details about the market status
+start 	Time the market opens in EST
+end 	Time the market closes in EST
+
+Gainloss
+Field 	Description
+close_date 	Date the position was closed
+cost 	Total cost of the position
+gain_loss 	Gain or loss on the position
+gain_loss_percent 	Gain or loss represented as percent
+open_date 	Date the position was opened
+proceeds 	Total amount received for the position
+quantity 	Quantity of shares/contracts
+symbol 	Symbol of the security held
+term 	Term in months position was held
+
+History
+Field 	Description
+amount 	Value of transaction
+date 	Date of event
+type 	Type of event that occurred (trade, journal)
+description 	Text description of event
+commission 	Commission
+price 	Price
+quantity 	Quantity
+symbol 	Symbol
+trade_type 	Security type of the trade (Equity, Option)
+Historical
+Field 	Description
+date 	Date of the data point
+open 	Open price
+high 	High price
+low 	Low price
+close 	Close price
+volume 	Volume
+
+Positions
+Field 	Description
+cost_basis 	Cost of the position
+date_acquired 	Date position was acquired (or most recently updated)
+id 	Unique position identifier
+quantity 	Number of shares/contracts (positive numbers indicate long positions, negative numbers indicate short positions)
+symbol 	Security symbol
+
+
+Search/Lookup
+Field 	Description
+symbol 	Security symbol
+exchange 	Exchange code of the symbol
+type 	Type, one of: stock, option, etf, index, mutual_fund
+description 	Security detailed name or description
+
+Streaming Responses
+Quote
+
+The quote event is issued when a viable quote has been created an exchange. This represents the most current bid/ask pricing available.
+Field 	Description
+type 	Type of the event
+symbol 	Security symbol for the event
+bid 	Bid price
+bidsz 	Bid size
+bidexch 	Bid exchange
+biddate 	Bid date
+ask 	Ask price
+asksz 	Ask size
+askexch 	Ask exchange
+askdate 	Ask date
+Trade
+
+The trade event is sent for all trade events at exchanges. By default, the trade event is filtered to only include valid ticks (removing trade corrections, errors, etc).
+Field 	Description
+type 	Type of the event
+symbol 	Security symbol for the event
+exch 	Exchange code reporting the event
+price 	Last price available
+size 	Size of the trade event
+cvol 	Cumulative volume
+date 	Trade date
+last 	Last price (this is a duplicate of price)
+Summary
+
+The summary event is triggered when a market session high, low, open, or close event is triggered.
+Field 	Description
+type 	Type of the event
+symbol 	Security symbol for the event
+open 	Open price
+high 	High price
+low 	Low price
+prevClose 	Previous close price
+Timesale
+
+Time and Sale represents a trade or other market event with price, like market open/close price, etc. Time and Sales are intended to provide information about trades in a continuous time slice (unlike Trade events which are supposed to provide snapshot about the current last trade). Timesale events are uniquely sequenced.
+Field 	Description
+type 	Type of the event
+symbol 	Security symbol for the event
+exch 	Exchange code reporting the event
+bid 	Bid price
+ask 	Ask price
+last 	Last price
+size 	Size of the event
+date 	Date of the event
+seq 	Sequence number
+flag 	Event flag Reference
+cancel 	Was this a cancel event
+correction 	Was this a correction event
+session 	Market session type of the event
+Tradex
+
+The trade event is sent for all trade events at exchanges. This payload has more accurate information during the pre/post market sessions. If you plan streaming market data during these sessions, you should use this payload over the trade payload.
+Field 	Description
+type 	Type of the event
+symbol 	Security symbol for the event
+exch 	Exchange code reporting the event
+price 	Last price available
+size 	Size of the trade event
+cvol 	Cumulative volume
+date 	Trade date
+last 	Last price (this is a duplicate of price)
+
+Timesale (1min, 5min, 15min)
+Field 	Description
+time 	Time of the interval
+timestamp 	UNIX timestamp of the interval
+price 	Last price of the interval
+open 	Open price of the interval
+high 	High price of the interval
+low 	Low price of the interval
+close 	Close price of the interval
+volume 	Volume of the interval
+vwap 	Volume weighted average price of the interval
+Timesale (tick)
+Field 	Description
+time 	Time of the interval
+timestamp 	UNIX timestamp of the interval
+price 	Last price of the interval
+volume 	Volume of the interval
+
+Watchlists
+Field 	Description
+watchlists 	An array of watchlists
+id 	Watchlist's Id
+name 	Watchlists's name
+public_id 	The watchlist's public Id to be used for sharing
+
+Watchlist
+Field 	Description
+id 	Watchlist's Id
+public_id 	The watchlist's public Id to be used for sharing
+name 	Watchlists's name
+items 	An array of the watchlist items
+symbol 	Item's symbol
+
