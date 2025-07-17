@@ -2,7 +2,7 @@
 /        oqdTradierpp - Full featured Tradier API library 
 /       
 /        Authors:  Benjamin Cance (kc8bws@kc8bws.com), OQD Developer Team (developers@openquantdesk.com)
-/        Version:           v1.0.0
+/        Version:           v1.1
 /        Release Date:  06/30/2025
 /        License: Apache 2.0
 /        Disclaimer: This software is provided "as-is" without warranties of any kind. 

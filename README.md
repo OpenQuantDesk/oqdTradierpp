@@ -96,7 +96,7 @@ int main() {
 
 **Example Output:**
 ```
-Tradier C++ Library v2.0.0 initialized
+Tradier C++ Library v1.1 initialized
 User: Benjamin Cance (ID: id-sb-utmfrs8g)
 
 AAPL - Last: $201.08 Bid/Ask: $202.10/$202.20
@@ -241,7 +241,7 @@ $ ./examples/market_data_example
 
 **Sample Output:**
 ```
-Tradier C++ Library v2.0.0 initialized
+Tradier C++ Library v1.1 initialized
 Using sandbox environment for market data
 === Tradier Market Data Example ===
 Environment: Sandbox

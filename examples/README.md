@@ -40,7 +40,7 @@ make
 
 **Sample Output**:
 ```
-Tradier C++ Library v2.0.0 initialized
+Tradier C++ Library v1.1 initialized
 Using sandbox environment
 Tradier C++ Library Basic Usage Example
 Library Version: 2.0.0
