@@ -1,8 +1,8 @@
 # oqdTradierpp
 
-[![CI/CD Pipeline](https://github.com/your-org/oqdTradierpp/workflows/CI/badge.svg)](https://github.com/your-org/oqdTradierpp/actions)
-[![codecov](https://codecov.io/gh/your-org/oqdTradierpp/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/oqdTradierpp)
-[![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](https://your-org.github.io/oqdTradierpp/)
+[![CI/CD Pipeline](https://github.com/openquantdesk/oqdTradierpp/workflows/CI/badge.svg)](https://github.com/openquantdesk/oqdTradierpp/actions)
+[![codecov](https://codecov.io/gh/openquantdesk/oqdTradierpp/branch/main/graph/badge.svg)](https://codecov.io/gh/openquantdesk/oqdTradierpp)
+[![Documentation](https://img.shields.io/badge/docs-doxygen-blue.svg)](https://openquantdesk.github.io/oqdTradierpp/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A high-performance, modern C++20 library for integrating with the Tradier brokerage API. Built for professional trading applications requiring low-latency market data and reliable order execution.
@@ -56,7 +56,7 @@ sudo pacman -S boost simdjson openssl gtest
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/oqdTradierpp.git
+git clone https://github.com/openquantdesk/oqdTradierpp.git
 cd oqdTradierpp
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
@@ -336,7 +336,7 @@ Real-time market data streaming
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/oqdTradierpp.git
+git clone https://github.com/openquantdesk/oqdTradierpp.git
 cd oqdTradierpp
 
 # Debug build with all warnings
@@ -394,9 +394,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🤝 Support
 
-- **Documentation**: [API Reference](https://your-org.github.io/oqdTradierpp/)
-- **Issues**: [GitHub Issues](https://github.com/your-org/oqdTradierpp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/oqdTradierpp/discussions)
+- **Documentation**: [API Reference](https://openquantdesk.github.io/oqdTradierpp/)
+- **Issues**: [GitHub Issues](https://github.com/openquantdesk/oqdTradierpp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/openquantdesk/oqdTradierpp/discussions)
 
 ## 🙏 Acknowledgments
 
