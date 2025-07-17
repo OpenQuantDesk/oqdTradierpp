@@ -20,6 +20,50 @@
 
 namespace oqd {
 
+// Forward declarations
+class ValidationException;
+
+// Path parameter validation utilities  
+class PathValidator {
+public:
+    static std::string validate_account_id(const std::string& account_id);
+    static std::string validate_order_id(const std::string& order_id);
+    static std::string validate_session_id(const std::string& session_id);
+    static std::string validate_symbol(const std::string& symbol);
+    static std::string validate_option_symbol(const std::string& option_symbol);
+    
+private:
+    static bool is_valid_account_id_format(const std::string& account_id);
+    static bool is_valid_order_id_format(const std::string& order_id);
+    static bool is_valid_session_id_format(const std::string& session_id);
+    static void throw_if_invalid(const std::string& value, const std::string& type);
+};
+
+// Input sanitization utilities
+class InputSanitizer {
+public:
+    static std::string sanitize_string(const std::string& input, size_t max_length = 256);
+    static std::string sanitize_search_query(const std::string& query);
+    static std::string sanitize_symbol_list(const std::string& symbols);
+    static std::string sanitize_numeric_string(const std::string& value);
+    static std::string remove_sql_injection_chars(const std::string& input);
+    static std::string escape_special_chars(const std::string& input);
+    
+private:
+    static bool is_safe_character(char c);
+    static std::string normalize_whitespace(const std::string& input);
+};
+
+// Enhanced validation exception
+class ValidationException : public std::exception {
+public:
+    explicit ValidationException(const std::string& message) : message_(message) {}
+    const char* what() const noexcept override { return message_.c_str(); }
+    
+private:
+    std::string message_;
+};
+
 // Order validation results
 struct ValidationResult {
     bool is_valid;
@@ -58,12 +102,41 @@ public:
     static ValidationResult validate_order_component(const OrderComponent& component);
     static ValidationResult validate_spread_leg(const SpreadLeg& leg);
     
-    // Utility functions
+    // Enhanced utility functions
     static bool is_valid_symbol(const std::string& symbol);
     static bool is_valid_option_symbol(const std::string& option_symbol);
     static bool is_valid_price(double price);
     static bool is_valid_quantity(int quantity);
     static bool is_spread_type_supported(const std::string& spread_type);
+    
+    // Enhanced price validation
+    static bool is_valid_stock_price(double price);
+    static bool is_valid_option_price(double price);
+    static bool is_valid_price_increment(double price, const std::string& symbol);
+    static bool is_reasonable_price_range(double price, const std::string& symbol);
+    
+    // Enhanced quantity validation
+    static bool is_valid_stock_quantity(int quantity);
+    static bool is_valid_option_quantity(int quantity);
+    static bool is_valid_quantity_for_order_type(int quantity, OrderType type);
+    static bool exceeds_daily_volume_limit(int quantity, const std::string& symbol);
+    
+    // Symbol validation enhancements
+    static bool is_valid_us_stock_symbol(const std::string& symbol);
+    static bool is_valid_etf_symbol(const std::string& symbol);
+    static bool is_valid_index_symbol(const std::string& symbol);
+    static bool is_valid_forex_symbol(const std::string& symbol);
+    
+    // Option symbol validation enhancements
+    static bool is_valid_occ_option_symbol(const std::string& option_symbol);
+    static bool is_valid_option_expiration_date(const std::string& expiration);
+    static bool is_valid_option_strike_price(double strike);
+    static bool is_option_symbol_consistent(const std::string& underlying, const std::string& option_symbol);
+    
+    // Risk validation
+    static bool exceeds_risk_limits(const OrderRequest& order, double max_risk_per_trade);
+    static bool violates_position_limits(const OrderRequest& order, double max_position_size);
+    static double calculate_order_risk(const OrderRequest& order);
     
     // Risk assessment helpers
     static double calculate_max_loss_otoco(const OTOCOOrderRequest& order);

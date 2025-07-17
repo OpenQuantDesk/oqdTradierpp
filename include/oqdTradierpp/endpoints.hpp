@@ -17,6 +17,7 @@
 #include <array>
 #include <string>
 #include <unordered_map>
+#include "validation.hpp"
 
 namespace oqd::endpoints {
 
@@ -55,7 +56,8 @@ namespace accounts {
         static constexpr std::string_view auth_type = "bearer";
         static constexpr int rate_limit = 120;
         static std::string path(const std::string& account_id) {
-            return "/v1/accounts/" + account_id + "/balances";
+            std::string validated_id = PathValidator::validate_account_id(account_id);
+            return "/v1/accounts/" + validated_id + "/balances";
         }
     };
     
@@ -64,7 +66,8 @@ namespace accounts {
         static constexpr std::string_view auth_type = "bearer";
         static constexpr int rate_limit = 120;
         static std::string path(const std::string& account_id) {
-            return "/v1/accounts/" + account_id + "/positions";
+            std::string validated_id = PathValidator::validate_account_id(account_id);
+            return "/v1/accounts/" + validated_id + "/positions";
         }
     };
     
@@ -73,7 +76,8 @@ namespace accounts {
         static constexpr std::string_view auth_type = "bearer";
         static constexpr int rate_limit = 180;
         static std::string path(const std::string& account_id) {
-            return "/v1/accounts/" + account_id + "/orders";
+            std::string validated_id = PathValidator::validate_account_id(account_id);
+            return "/v1/accounts/" + validated_id + "/orders";
         }
         
         struct create {
@@ -81,7 +85,8 @@ namespace accounts {
             static constexpr std::string_view auth_type = "bearer";
             static constexpr int rate_limit = 180;
             static std::string path(const std::string& account_id) {
-                return "/v1/accounts/" + account_id + "/orders";
+                std::string validated_id = PathValidator::validate_account_id(account_id);
+                return "/v1/accounts/" + validated_id + "/orders";
             }
         };
         
@@ -90,7 +95,9 @@ namespace accounts {
             static constexpr std::string_view auth_type = "bearer";
             static constexpr int rate_limit = 180;
             static std::string path(const std::string& account_id, const std::string& order_id) {
-                return "/v1/accounts/" + account_id + "/orders/" + order_id;
+                std::string validated_account_id = PathValidator::validate_account_id(account_id);
+                std::string validated_order_id = PathValidator::validate_order_id(order_id);
+                return "/v1/accounts/" + validated_account_id + "/orders/" + validated_order_id;
             }
         };
     };
@@ -118,7 +125,8 @@ namespace markets {
             static constexpr std::string_view auth_type = "bearer";
             static constexpr int rate_limit = 1;
             static std::string path(const std::string& session_id) {
-                return "/v1/markets/events/" + session_id;
+                std::string validated_session_id = PathValidator::validate_session_id(session_id);
+                return "/v1/markets/events/" + validated_session_id;
             }
         };
     };
